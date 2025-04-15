@@ -5,7 +5,7 @@ module Top (
 	input i_key_1,
 	input i_key_2,
 	// input [3:0] i_speed, // design how user can decide mode on your own
-	
+
 	// AudDSP and SRAM
 	output [19:0] o_SRAM_ADDR,
 	inout  [15:0] io_SRAM_DQ,
@@ -14,12 +14,12 @@ module Top (
 	output        o_SRAM_OE_N,
 	output        o_SRAM_LB_N,
 	output        o_SRAM_UB_N,
-	
+
 	// I2C
 	input  i_clk_100k,
 	output o_I2C_SCLK,
 	inout  io_I2C_SDAT,
-	
+
 	// AudPlayer
 	input  i_AUD_ADCDAT,
 	inout  i_AUD_ADCLRCK,
@@ -86,7 +86,7 @@ I2cInitializer init0(
 
 // === AudDSP ===
 // responsible for DSP operations including fast play and slow play at different speed
-// in other words, determine which data addr to be fetch for player 
+// in other words, determine which data addr to be fetch for player
 AudDSP dsp0(
 	.i_rst_n(i_rst_n),
 	.i_clk(),
@@ -117,7 +117,7 @@ AudPlayer player0(
 // === AudRecorder ===
 // receive data from WM8731 with I2S protocal and save to SRAM
 AudRecorder recorder0(
-	.i_rst_n(i_rst_n), 
+	.i_rst_n(i_rst_n),
 	.i_clk(i_AUD_BCLK),
 	.i_lrc(i_AUD_ADCLRCK),
 	.i_start(),
@@ -134,10 +134,10 @@ end
 
 always_ff @(posedge i_AUD_BCLK or negedge i_rst_n) begin
 	if (!i_rst_n) begin
-		
+
 	end
 	else begin
-		
+
 	end
 end
 
