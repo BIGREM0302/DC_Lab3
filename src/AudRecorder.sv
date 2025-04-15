@@ -20,20 +20,36 @@ parameter LEFT = 2'd1;
 parameter RIGHT = 2'd2;
 parameter STOP = 2'd3;
 
+assign o_address = adress_r;
+assign o_data = data_r;
+
 //FSM
 always_comb begin
     //default value
     state_w = state_r;
     case(state_r)
-    IDLE:
+    IDLE:begin
         if(i_start) state_w = LEFT;    
-    LEFT:
-        if(i_lrc) state_w = RIGHT;
-    RIGHT:
-        if(~i_lrc) state_w = LEFT;
-    STOP:
+    end
+    LEFT:begin
+        if(i_stop|i_pause) state_w = STOP;
+        else if(i_lrc) state_w = RIGHT;
+    end
+    RIGHT:begin
+        if(i_stop|i_pause) state_w = STOP;
+        else if(~i_lrc) state_w = LEFT;
+    end
+    STOP:begin
         // To Do:
+        if(i_start) state_w = LEFT;
+        else state_w = IDLE;
+    end
     endcase
+end
+
+//pause function
+always_comb begin
+    
 end
 
 //counter
@@ -42,6 +58,7 @@ always_comb begin
     counter_w = counter_r;
     //count 0 -> 1 -> 2 ... -> 15 -> 16 -> 16 .... 16 -> 0...
     case(state_r)
+    STOP: counter_w = 5'd0;
     LEFT:begin
         if(state_w == RIGHT) counter_w = 5'd0;
         else if(counter_r >= 5'd16) counter_w = counter_r;
@@ -59,8 +76,8 @@ end
 always_comb begin
     //default value
     data_w = data_r;
-    case(state)
-    LEFT: data_w = 16'd0; //nothing and also reset to zeros when it's left channel
+    case(state_r)
+    LEFT: data_w = 16'd0; //nothing but also reset to zeros when it's left channel
     RIGHT:begin
         if(counter_r < 5'd16) data_w = {data_r[14:0], i_data}; //i_data will change at negative edge
         else data_w = data_r;
@@ -80,7 +97,7 @@ always_ff @(posedge i_clk or negedge i_rst_n)begin
         state_r <= IDLE;
         data_r <= 16'd0;
         address_r <= 20'd0;
-        counter_r <= 4'd0;
+        counter_r <= 5'd0;
     end
     else begin
         state_r <= state_w;
