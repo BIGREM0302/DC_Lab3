@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps //for testbench
+
 module AudRecorder(
 	input i_rst_n, // connect to the reset signal
 	input i_clk, // connect to the AUD_BCLK, the bit clock
@@ -7,20 +9,21 @@ module AudRecorder(
 	input i_stop, // stop recording
 	input i_data, // connect to i_AUD_ADCDAT (analog to digital)
 	output [19:0] o_address, //the address of SRAM : 20 bits address with each word size = 16bits
-	output [15:0] o_data, //the data going to be stored (16 bit)
+	output [15:0] o_data //the data going to be stored (16 bit)
 );
 
-reg [1:0] state_r, state_w;
+reg [2:0] state_r, state_w;
 reg [15:0] data_r, data_w;
 reg [19:0] address_r, address_w;
 reg [4:0] counter_r, counter_w;
 
-parameter IDLE = 2'd0;
-parameter LEFT = 2'd1;
-parameter RIGHT = 2'd2;
-parameter STOP = 2'd3;
+parameter IDLE = 3'd0;
+parameter LEFT = 3'd1;
+parameter RIGHT = 3'd2;
+parameter PAUSE = 3'd3;
+parameter STOP = 3'd4;
 
-assign o_address = adress_r;
+assign o_address = address_r;
 assign o_data = data_r;
 
 //FSM
@@ -32,12 +35,20 @@ always_comb begin
         if(i_start) state_w = LEFT;    
     end
     LEFT:begin
-        if(i_stop|i_pause) state_w = STOP;
+        if(i_stop) state_w = STOP;
+        else if(i_pause) state_w = PAUSE;
         else if(i_lrc) state_w = RIGHT;
     end
     RIGHT:begin
-        if(i_stop|i_pause) state_w = STOP;
+        if(i_stop) state_w = STOP;
+        else if(i_pause) state_w = PAUSE;
         else if(~i_lrc) state_w = LEFT;
+    end
+    PAUSE:begin
+        if(~i_pause)begin
+            if(~i_lrc) state_w = LEFT;
+            else state_w = RIGHT;
+        end
     end
     STOP:begin
         // To Do:
@@ -47,7 +58,7 @@ always_comb begin
     endcase
 end
 
-//pause function
+//ugh...
 always_comb begin
     
 end
@@ -58,14 +69,13 @@ always_comb begin
     counter_w = counter_r;
     //count 0 -> 1 -> 2 ... -> 15 -> 16 -> 16 .... 16 -> 0...
     case(state_r)
-    STOP: counter_w = 5'd0;
     LEFT:begin
-        if(state_w == RIGHT) counter_w = 5'd0;
+        if(state_w == RIGHT || state_w == STOP || state_w == PAUSE) counter_w = 5'd0;
         else if(counter_r >= 5'd16) counter_w = counter_r;
         else counter_w = counter_r + 5'd1;
     end
     RIGHT:begin
-        if(state_w == LEFT) counter_w = 5'd0;
+        if(state_w == LEFT || state_w == STOP || state_w == PAUSE) counter_w = 5'd0;
         else if(counter_r >= 5'd16) counter_w = counter_r;
         else counter_w = counter_r + 5'd1;
     end
@@ -89,7 +99,7 @@ end
 always_comb begin
     //default value
     address_w = address_r;
-    if(state_r == RIGHT && state_w == LEFT) address_w = address_r + 20'd1;
+    if(state_r == RIGHT && (state_w == LEFT||state_w == PAUSE) && counter_r == 5'd16) address_w = address_r + 20'd1;
 end
 
 always_ff @(posedge i_clk or negedge i_rst_n)begin
