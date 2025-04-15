@@ -12,10 +12,10 @@ module AudRecorder(
 	output [15:0] o_data //the data going to be stored (16 bit)
 );
 
-reg [2:0] state_r, state_w;
-reg [15:0] data_r, data_w;
-reg [19:0] address_r, address_w;
-reg [4:0] counter_r, counter_w;
+logic [2:0] state_r, state_w;
+logic [15:0] data_r, data_w;
+logic [19:0] address_r, address_w;
+logic [4:0] counter_r, counter_w;
 
 parameter IDLE = 3'd0;
 parameter LEFT = 3'd1;

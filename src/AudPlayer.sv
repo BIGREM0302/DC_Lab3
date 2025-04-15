@@ -13,9 +13,9 @@ module AudPlayer(
 parameter IDLE = 1'b0;
 parameter PLAY = 1'b1;
 
-reg state_r, state_w;
-reg [15:0] aud_dacdat_r, aud_dacdat_w;
-reg [5:0] counter_r, counter_w;
+logic state_r, state_w;
+logic [15:0] aud_dacdat_r, aud_dacdat_w;
+logic [5:0] counter_r, counter_w;
 
 assign o_aud_dacdat = aud_dacdat_r[15];
 //FSM
