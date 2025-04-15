@@ -60,12 +60,17 @@ module AudPlayer_tb();
         // Try another sample
         i_dac_data = 16'b1111000011110000;
         i_en = 1;
-        #10;
-        i_en = 0;
 
         #500;
 
-        $stop;
+        $display("Finish simulation");
+        $finish;
+    end
+
+    // generate waveform file
+    initial begin
+        $dumpfile("audPlayer.fsdb");
+        $dumpvars(0, AudPlayer_tb);
     end
 
 endmodule

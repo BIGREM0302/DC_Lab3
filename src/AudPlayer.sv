@@ -22,8 +22,8 @@ assign o_aud_dacdat = aud_dacdat_r[15];
 always_comb begin
     state_w = state_r;
     case(state_r)
-    IDLE: if(i_en && ~i_bclk) state_w = PLAY;
-    PLAY: if(i_bclk && counter == 5'd16) state_w = IDLE;
+    IDLE: if(i_en && ~i_daclrck) state_w = PLAY;
+    PLAY: if(i_daclrck && counter_r == 5'd16) state_w = IDLE;
     endcase
 end
 
