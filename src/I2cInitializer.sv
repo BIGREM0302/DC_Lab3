@@ -45,6 +45,7 @@ assign o_sdat = oen? dat:1'bz;
 always_comb begin
     //default value
     state_w = state_r;
+    o_finished = 1'b0;
     oen = 1'b1;
     dat = 1'b1;
     o_sclk = 1'b1;
@@ -59,13 +60,13 @@ always_comb begin
         SENDBUF:begin
             state_w = SEND;
             o_sclk = 1'b0;
-            dat = command[23]; //send the MSB
+            dat = command_r[23]; //send the MSB
         end
         SEND:begin
             if(bit_counter_r == 3'd7) state_w = ACKBUF;
             else state_w = SENDBUF;
             o_sclk = 1'b1;
-            dat = command[23];
+            dat = command_r[23];
         end
         ACKBUF:begin
             state_w = ACK;
@@ -79,7 +80,7 @@ always_comb begin
             o_sclk = 1'b1;
         end
         CEND:begin
-            if(c_counter_r == 4'd9) state_w = STOP;//finish all commands
+            if(c_counter_r == 4'd9) state_w = STOPBUF;//finish all commands
             else state_w = SENDBUF;
             o_sclk = 1'b0;
             dat = 1'b0;
@@ -87,10 +88,13 @@ always_comb begin
         STOPBUF:begin
             state_w = STOP;
             o_sclk = 1'b1;
-            dat = 1'b1; //0->1
+            dat = 1'b0;
+            o_finished = 1'b1;
         end
         STOP:begin
             state_w = IDLE;
+            dat = 1'b1; //0->1
+            o_finished = 1'b1;
         end
     endcase    
 end
@@ -99,7 +103,7 @@ end
 always_comb begin
     //default value
     command_w = command_r;
-    if(state_r == START || state == CEND) begin
+    if(state_r == START || state_r == CEND) begin
         case(c_counter_r)
             4'd0: command_w = LLI;
             4'd1: command_w = RLI;
@@ -124,15 +128,15 @@ always_comb begin
     c_counter_w = c_counter_r;
     bit_counter_w = bit_counter_r;
     byte_counter_w = byte_counter_r;
-    if(state == SEND)begin
+    if(state_r == SEND)begin
         if(bit_counter_r == 3'd7) bit_counter_w = 3'd0;
         else bit_counter_w = bit_counter_r + 3'd1;
     end
-    if(state == ACK)begin
-        if(byte_counter_r == 2'd3) byte_counter_r = 2'd0;
+    if(state_r == ACK)begin
+        if(byte_counter_r == 2'd3) byte_counter_w = 2'd0;
         else byte_counter_w = byte_counter_r + 2'd1;
     end
-    if(state == CEND)begin
+    if(state_r == CEND)begin
         if(c_counter_r == 4'd9) c_counter_w = 4'd0;
         else c_counter_w = c_counter_r + 4'd1;
     end
