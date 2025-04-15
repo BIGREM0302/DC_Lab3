@@ -102,7 +102,7 @@ always_comb begin
 
         S_STOP: begin
             play_addr_w  = 0;
-            dac_data_w   = 16'sd0;
+            dac_data_w   = 0;
             repeat_cnt_w = 0;
         end
     endcase
@@ -110,33 +110,16 @@ end
 
 always_ff @(posedge i_daclrck or negedge i_rst_n) begin
     if (!i_rst_n) begin
-        play_addr_r   <= '0;
-        prev_sample_r <= 16'sd0;
-        dac_data_r    <= 16'sd0;
-        repeat_cnt_r  <= 8'd0;
+        play_addr_r   <= 0;
+        prev_sample_r <= 0;
+        dac_data_r    <= 0;
+        repeat_cnt_r  <= 0;
     end
     else begin
         play_addr_r   <= play_addr_w;
         prev_sample_r <= prev_sample_w;
         dac_data_r    <= dac_data_w;
         repeat_cnt_r  <= repeat_cnt_w;
-    end
-end
-
-always_ff @(posedge i_daclrck or negedge i_rst_n) begin
-    if (!i_rst_n) begin
-        play_addr   <= '0;
-        prev_sample <= 16'sd0;
-        curr_sample <= 16'sd0;
-        o_dac_data  <= 16'sd0;
-        repeat_cnt  <= 8'd0;
-    end
-    else begin
-        play_addr_r <= play_addr_w;
-        prev_sample <= 16'sd0;
-        curr_sample <= 16'sd0;
-        o_dac_data  <= 16'sd0;
-        counter_r   <= counter_w;
     end
 end
 
