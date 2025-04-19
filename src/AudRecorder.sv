@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps //for testbench
-
 module AudRecorder(
 	input i_rst_n, // connect to the reset signal
 	input i_clk, // connect to the AUD_BCLK, the bit clock

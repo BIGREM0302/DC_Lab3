@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps //for testbench
-
 module AudPlayer(
 	input i_rst_n,
 	input i_bclk,

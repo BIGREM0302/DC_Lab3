@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps //for testbench
-
 module I2cInitializer(
     input i_rst_n,
     input i_clk,

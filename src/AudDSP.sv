@@ -17,7 +17,6 @@ module AudDSP (
 parameter S_IDLE  = 0;
 parameter S_PLAY  = 1;
 parameter S_PAUSE = 2;
-parameter S_STOP  = 3;
 
 logic        [ 1:0] state_r, state_w;
 logic        [19:0] play_addr_r, play_addr_w;
@@ -36,16 +35,14 @@ always_comb begin
     prev_sample_w = prev_sample_r;
     dac_data_w    = dac_data_r;
     repeat_cnt_w  = repeat_cnt_r;
-	step_val		= 0;
+	step_val	  = 0;
 
     case (state_r)
         S_IDLE: begin
-            if (i_start) begin
-                play_addr_w   = 0;
-                prev_sample_w = i_sram_data;
-                dac_data_w    = i_sram_data;
-                repeat_cnt_w  = 0;
-            end
+            play_addr_w   = 0;
+            prev_sample_w = i_sram_data;
+            dac_data_w    = i_sram_data;
+            repeat_cnt_w  = 0;
         end
 
         S_PLAY: begin
@@ -105,12 +102,6 @@ always_comb begin
         S_PAUSE: begin
             dac_data_w = dac_data_r;
         end
-
-        S_STOP: begin
-            play_addr_w  = 0;
-            dac_data_w   = 0;
-            repeat_cnt_w = 0;
-        end
     endcase
 end
 
@@ -134,27 +125,17 @@ always_comb begin
 
     case (state_r)
         S_IDLE: begin
-            if (i_start)
-                state_w = S_PLAY;
+            if (i_start) state_w = S_PLAY;
         end
 
         S_PLAY: begin
-            if (i_pause)
-                state_w = S_PAUSE;
-            else if (i_stop)
-                state_w = S_STOP;
+            if (i_pause) state_w = S_PAUSE;
+            else if (i_stop) state_w = S_IDLE;
         end
 
         S_PAUSE: begin
-            if (i_stop)
-                state_w = S_STOP;
-            else if (!i_pause)
-                state_w = S_PLAY;
-        end
-
-        S_STOP: begin
-            if (i_start)
-                state_w = S_PLAY;
+            if (i_stop) state_w = S_IDLE;
+            else if (!i_pause) state_w = S_PLAY;
         end
     endcase
 end

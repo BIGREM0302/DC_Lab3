@@ -83,6 +83,7 @@ assign Aud_Player_pause = (state_r == S_PLAY_PAUSE)? 1'b1 : 1'b0;
 assign Aud_fast = (i_fast&(~i_slow_0)&(~i_slow_1));
 assign Aud_slow_0 = (~i_fast&(i_slow_0)&(~i_slow_1));
 assign Aud_slow_1 = (~i_fast&(~i_slow_0)&(i_slow_1));
+assign Aud_all_stop = (state_r == S_IDLE)? 1'b1 : 1'b0;
 
 assign io_I2C_SDAT = (i2c_oen) ? i2c_sdat : 1'bz;
 
@@ -163,14 +164,12 @@ always_comb begin
 	record_time_w = record_time_r;
 	play_time_w   = play_time_r;
 	ctr_w         = ctr_r;
-	Aud_all_stop  = 0;
 	
 	case(state_r)
 
 		S_I2C:  begin
 			if(i2c_finished) begin
 				state_w = S_IDLE;
-				Aud_all_stop = 1;
 			end
 		end        
 
@@ -199,7 +198,6 @@ always_comb begin
 
 			else if (i_key_2) begin
 				state_w = S_IDLE;
-				Aud_all_stop = 1;
 			end
 		end       
 
@@ -214,7 +212,6 @@ always_comb begin
 
 			else if (i_key_2) begin
 				state_w = S_IDLE;
-				Aud_all_stop = 1;
 			end
 			
 		end 
@@ -226,7 +223,6 @@ always_comb begin
 
 			else if (i_key_2) begin
 				state_w = S_IDLE;
-				Aud_all_stop = 1;
 			end
 		end      
 
@@ -237,7 +233,6 @@ always_comb begin
 
 			else if (i_key_2) begin
 				state_w = S_IDLE;
-				Aud_all_stop = 1;
 			end
 		end 
 
