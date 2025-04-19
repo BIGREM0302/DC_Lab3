@@ -214,6 +214,7 @@ always_comb begin
 
 			else if (i_key_2) begin
 				state_w = S_IDLE;
+				Aud_all_stop = 1;
 			end
 			
 		end 
@@ -235,7 +236,7 @@ always_comb begin
 			end
 
 			else if (i_key_2) begin
-				state_w = S_RECD_PAUSE;
+				state_w = S_IDLE;
 				Aud_all_stop = 1;
 			end
 		end 
