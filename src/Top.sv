@@ -57,8 +57,8 @@ parameter S_RECD_PAUSE = 3;
 parameter S_PLAY       = 4;
 parameter S_PLAY_PAUSE = 5;
 
-parameter MAX 		   = 15'd32767;
-parameter timemax      = 6'd32;
+parameter MAX 		   = 24'd12000000;
+parameter timemax    = 6'd32;
 
 logic i2c_oen, i2c_sdat;
 logic [19:0] addr_record, addr_play;
@@ -67,7 +67,8 @@ logic [2:0] state_r, state_w;
 
 logic [5:0] record_time_r,record_time_w;
 logic [5:0] play_time_r,play_time_w;
-logic [15:0] ctr_r,ctr_w;
+logic [23:0] ctr_r,ctr_w;
+logic [3:0] repeat_ctr_r, repeat_ctr_w;
 
 logic i2c_start, i2c_finished;
 logic Aud_Recorder_start, Aud_Recorder_pause;
@@ -164,6 +165,7 @@ always_comb begin
 	record_time_w = record_time_r;
 	play_time_w   = play_time_r;
 	ctr_w         = ctr_r;
+	repeat_ctr_w  = repeat_ctr_r;
 	
 	case(state_r)
 
@@ -176,15 +178,16 @@ always_comb begin
 		S_IDLE: begin
 			if(i_key_0) begin
 				state_w = S_RECD;
-				record_time_w = 0;
-				ctr_w   = 0;
+				record_time_w = 6'd0;
 			end
 
 			else if(i_key_1) begin
 				state_w = S_PLAY;
-				play_time_w = 0;
-				ctr_w   = 0;
+				play_time_w = 6'd0;
 			end
+			repeat_ctr_w  = 4'd0;
+			ctr_w   = 24'd0;
+			
 		end
 
 		S_RECD: begin
@@ -198,6 +201,27 @@ always_comb begin
 
 			else if (i_key_2) begin
 				state_w = S_IDLE;
+			end
+			
+			else begin
+				if(ctr_r == MAX) begin
+					ctr_w = 24'd0;
+					if(record_time_r == timemax) begin
+						record_time_w = record_time_r;
+					end
+					else begin
+						record_time_w = record_time_r + 6'd1; 
+					end
+				end
+				
+				else if (ctr_r < MAX) begin
+					ctr_w = ctr_r + 24'd1;
+				end
+				
+				else begin
+					ctr_w = 24'd0;
+				end
+			
 			end
 		end       
 
@@ -224,6 +248,55 @@ always_comb begin
 			else if (i_key_2) begin
 				state_w = S_IDLE;
 			end
+			
+			else begin
+			
+				if(ctr_r == MAX) begin
+					ctr_w = 24'd0;
+					if(play_time_r == timemax) begin
+						play_time_w = play_time_r;
+					end
+					else begin
+						play_time_w = play_time_r + 6'd1; 
+					end
+				end
+				
+				else if(ctr_r < MAX) begin
+					 if (Aud_fast) begin
+                        ctr_w   = ctr_r + i_speed;
+                        repeat_ctr_w  = 4'd0;
+                end
+
+                else if (Aud_slow_0 && i_speed >= 4'd2) begin
+                    if (repeat_ctr_r == i_speed) begin
+                        ctr_w   = ctr_r + 24'd1;
+								repeat_ctr_w  = 4'd0;
+                    end
+                    else begin
+                        repeat_ctr_w = repeat_ctr_r + 4'd1;
+                    end
+                end
+
+                else if (Aud_slow_1 && i_speed >= 4'd2) begin
+                    if (repeat_ctr_r == i_speed) begin
+                        ctr_w   = ctr_r + 24'd1;
+								repeat_ctr_w  = 4'd0;
+                    end
+                    else begin
+                        repeat_ctr_w = repeat_ctr_r + 4'd1;
+                    end
+                end
+	
+				    else begin
+                    ctr_w   = ctr_r + 1;
+                end
+				end
+				
+				else begin
+					ctr_w = 24'd0;
+				end
+			
+			end
 		end      
 
 		S_PLAY_PAUSE: begin
@@ -242,16 +315,20 @@ end
 always_ff @(posedge i_AUD_BCLK or negedge i_rst_n) begin
 	if (!i_rst_n) begin
 		state_r   <= S_I2C;
-		ctr_r <= 0;
 		record_time_r <= 6'd0;
 		play_time_r <= 6'd0;
+		repeat_ctr_r <= 4'd0;
 	end
 	else begin
 		state_r       <= state_w;
-		ctr_r		  <= ctr_w;
 		record_time_r <= record_time_w;
 		play_time_r   <= play_time_w;
+		repeat_ctr_r  <= repeat_ctr_w;
 	end
+end
+
+always_ff @(posedge i_AUD_BCLK) begin
+		ctr_r		  <= ctr_w;
 end
 
 endmodule
