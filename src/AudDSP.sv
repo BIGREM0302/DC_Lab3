@@ -4,7 +4,7 @@ module AudDSP (
     input  logic               i_start,
     input  logic               i_pause,
     input  logic               i_stop,
-    input  logic        [ 3:0] i_speed,
+    input  logic        [3:0]  i_speed,
     input  logic               i_fast,
     input  logic               i_slow_0,
     input  logic               i_slow_1,
@@ -25,9 +25,11 @@ logic signed [15:0] prev_sample_r, prev_sample_w;
 logic signed [15:0] dac_data_r, dac_data_w;
 logic        [ 3:0] repeat_cnt_r, repeat_cnt_w;
 logic signed [15:0] step_val;
+logic         [3:0] i_speed_brainrot;
 
 assign o_sram_addr = play_addr_r;
 assign o_dac_data  = dac_data_r;
+assign i_speed_brainrot = (i_speed != 4'd0)? i_speed:4'd1;
 
 always_comb begin
     play_addr_w   = play_addr_r;
@@ -48,10 +50,10 @@ always_comb begin
         S_PLAY: begin
             if (!i_pause && !i_stop) begin
                 if (i_fast) begin
-                    play_addr_w   = play_addr_r + i_speed;
-                    dac_data_w    = i_sram_data;
-                    prev_sample_w = i_sram_data;
-                    repeat_cnt_w  = 0;
+                        play_addr_w   = play_addr_r + i_speed_brainrot;
+                        dac_data_w    = i_sram_data;
+                        prev_sample_w = i_sram_data;
+                        repeat_cnt_w  = 0;
                 end
 
                 else if (i_slow_0) begin
@@ -60,11 +62,11 @@ always_comb begin
                         dac_data_w    = i_sram_data;
                         repeat_cnt_w  = repeat_cnt_r + 1;
                     end
-                    else if (repeat_cnt_r < i_speed) begin
+                    else if (repeat_cnt_r < i_speed_brainrot) begin
                         dac_data_w   = prev_sample_r;
                         repeat_cnt_w = repeat_cnt_r + 1;
                     end
-                    if (repeat_cnt_r == (i_speed - 1)) begin
+                    if (repeat_cnt_r == (i_speed_brainrot - 1)) begin
                         play_addr_w  = play_addr_r + 1;
                         repeat_cnt_w = 0;
                     end
@@ -77,12 +79,12 @@ always_comb begin
                         prev_sample_w = i_sram_data;
                         repeat_cnt_w  = repeat_cnt_r + 1;
                     end
-                    else if (repeat_cnt_r < i_speed) begin
-                        step_val     = (i_sram_data - prev_sample_r) / i_speed;
-                        dac_data_w   = prev_sample_r + (step_val * repeat_cnt_r);
+                    else if (repeat_cnt_r < i_speed_brainrot) begin
+                        $signed(step_val)     = $signed(($signed(i_sram_data) - $signed(prev_sample_r))/ $signed(i_speed_brainrot));
+                        $signed(dac_data_w)  = $signed(prev_sample_r) + $signed(($signed(step_val) * $signed(repeat_cnt_r)));
                         repeat_cnt_w = repeat_cnt_r + 1;
                     end
-                    if (repeat_cnt_r == (i_speed - 1)) begin
+                    if (repeat_cnt_r == (i_speed_brainrot - 1)) begin
                         repeat_cnt_w = 0;
                     end
                 end

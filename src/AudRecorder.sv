@@ -58,17 +58,15 @@ always_comb begin
     endcase
 end
 
-//ugh...
-always_comb begin
-    
-end
-
 //counter
 always_comb begin
     //default value
     counter_w = counter_r;
     //count 0 -> 1 -> 2 ... -> 15 -> 16 -> 16 .... 16 -> 0...
     case(state_r)
+    IDLE:begin
+        counter_w = 0;
+    end
     LEFT:begin
         if(state_w == RIGHT || state_w == STOP || state_w == PAUSE) counter_w = 5'd0;
         else if(counter_r >= 5'd16) counter_w = counter_r;
@@ -87,7 +85,6 @@ always_comb begin
     //default value
     data_w = data_r;
     case(state_r)
-    LEFT: data_w = 16'd0; //nothing but also reset to zeros when it's left channel
     RIGHT:begin
         if(counter_r < 5'd16) data_w = {data_r[14:0], i_data}; //i_data will change at negative edge
         else data_w = data_r;
