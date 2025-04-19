@@ -6,7 +6,7 @@ module I2cInitializer(
     input i_start,
     output o_finished,
     output o_sclk,
-    inout o_sdat,
+    output o_sdat,
     output o_oen
 );
 //commands for initialization
@@ -43,7 +43,7 @@ logic [3:0] c_counter_r, c_counter_w;
 assign o_oen = oen;
 assign o_sclk = sclk;
 assign o_finished = finished;
-assign o_sdat = oen? dat:1'bz;
+assign o_sdat = dat;
 
 //FSM
 always_comb begin

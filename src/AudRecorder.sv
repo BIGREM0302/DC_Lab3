@@ -49,6 +49,7 @@ always_comb begin
             if(~i_lrc) state_w = LEFT;
             else state_w = RIGHT;
         end
+		  else if(i_stop) state_w = STOP;
     end
     STOP:begin
         // To Do:
@@ -96,7 +97,14 @@ end
 always_comb begin
     //default value
     address_w = address_r;
-    if(state_r == RIGHT && (state_w == LEFT||state_w == PAUSE) && counter_r == 5'd16) address_w = address_r + 20'd1;
+	 if(address_r == 20'b11111111111111111111) begin
+		 address_w = 0;
+	 end
+	 else begin
+		 if(state_r == RIGHT && (state_w == LEFT||state_w == PAUSE) && counter_r == 5'd16 && i_stop != 1) address_w = address_r + 20'd1;
+		 if (i_stop==1) address_w = 0;
+	 end 
+	 
 end
 
 always_ff @(posedge i_clk or negedge i_rst_n)begin

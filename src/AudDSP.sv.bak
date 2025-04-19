@@ -36,7 +36,6 @@ always_comb begin
     prev_sample_w = prev_sample_r;
     dac_data_w    = dac_data_r;
     repeat_cnt_w  = repeat_cnt_r;
-	step_val		= 0;
 
     case (state_r)
         S_IDLE: begin
@@ -57,38 +56,35 @@ always_comb begin
                         repeat_cnt_w  = 0;
                 end
 
-                else if (i_slow_0 && i_speed >= 4'd2) begin
+                else if (i_slow_0) begin
                     if (repeat_cnt_r == 0) begin
-                        play_addr_w  = play_addr_r + 1;
                         prev_sample_w = i_sram_data;
                         dac_data_w    = i_sram_data;
                         repeat_cnt_w  = repeat_cnt_r + 1;
                     end
-                    else if (repeat_cnt_r < i_speed_brainrot - 1) begin
+                    else if (repeat_cnt_r < i_speed_brainrot) begin
                         dac_data_w   = prev_sample_r;
                         repeat_cnt_w = repeat_cnt_r + 1;
                     end
-                    else if (repeat_cnt_r == (i_speed_brainrot - 1)) begin
-                        dac_data_w   = prev_sample_r;
+                    if (repeat_cnt_r == (i_speed_brainrot - 1)) begin
+                        play_addr_w  = play_addr_r + 1;
                         repeat_cnt_w = 0;
                     end
                 end
 
-                else if (i_slow_1 && i_speed >= 4'd2) begin
+                else if (i_slow_1) begin
                     if (repeat_cnt_r == 0) begin
                         play_addr_w   = play_addr_r + 1;
                         dac_data_w    = i_sram_data;
                         prev_sample_w = i_sram_data;
                         repeat_cnt_w  = repeat_cnt_r + 1;
                     end
-                    else if (repeat_cnt_r < i_speed_brainrot - 1) begin
-                        step_val     = $signed(($signed(i_sram_data) - $signed(prev_sample_r))/ $signed(i_speed_brainrot));
-                        dac_data_w  = $signed(prev_sample_r) + $signed(($signed(step_val) * $signed(repeat_cnt_r)));
+                    else if (repeat_cnt_r < i_speed_brainrot) begin
+                        $signed(step_val)     = $signed(($signed(i_sram_data) - $signed(prev_sample_r))/ $signed(i_speed_brainrot));
+                        $signed(dac_data_w)  = $signed(prev_sample_r) + $signed(($signed(step_val) * $signed(repeat_cnt_r)));
                         repeat_cnt_w = repeat_cnt_r + 1;
                     end
-                    else if (repeat_cnt_r == (i_speed_brainrot - 1)) begin
-                        step_val     = $signed(($signed(i_sram_data) - $signed(prev_sample_r))/ $signed(i_speed_brainrot));
-                        dac_data_w  = $signed(prev_sample_r) + $signed(($signed(step_val) * $signed(repeat_cnt_r)));
+                    if (repeat_cnt_r == (i_speed_brainrot - 1)) begin
                         repeat_cnt_w = 0;
                     end
                 end

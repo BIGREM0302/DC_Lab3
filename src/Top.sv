@@ -65,7 +65,7 @@ logic [19:0] addr_record, addr_play;
 logic [15:0] data_record, data_play, dac_data;
 logic [2:0] state_r, state_w;
 
-logic [5:0] record_time_r,o_record_time_w;
+logic [5:0] record_time_r,record_time_w;
 logic [5:0] play_time_r,play_time_w;
 logic [15:0] ctr_r,ctr_w;
 
@@ -201,20 +201,6 @@ always_comb begin
 				state_w = S_IDLE;
 				Aud_all_stop = 1;
 			end
-
-			else begin
-				if(ctr_r != MAX) begin
-					ctr_w = ctr_r + 1;
-				end
-
-				else begin
-					ctr_w = 0;
-					record_time_w = record_time_r + 1;
-						if(record_time_r == timemax) begin
-							state_w = S_IDLE;
-						end
-				end
-			end
 		end       
 
 		S_RECD_PAUSE: begin
@@ -241,21 +227,6 @@ always_comb begin
 				state_w = S_IDLE;
 				Aud_all_stop = 1;
 			end
-
-			else begin
-				if(ctr_r != MAX) begin
-					ctr_w = ctr_r + 1;
-				end
-
-				else begin
-					ctr_w = 0;
-					play_time_w = play_time_r + 1;
-						if(play_time_r == timemax) begin
-							state_w = S_IDLE;
-						end
-				end
-			end
-
 		end      
 
 		S_PLAY_PAUSE: begin
