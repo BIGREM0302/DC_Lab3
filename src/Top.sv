@@ -58,7 +58,7 @@ parameter S_PLAY       = 4;
 parameter S_PLAY_PAUSE = 5;
 
 parameter MAX 		   = 24'd12000000;
-parameter timemax    = 6'd32;
+parameter timemax      = 6'd32;
 
 logic i2c_oen, i2c_sdat;
 logic [19:0] addr_record, addr_play;
@@ -206,9 +206,10 @@ always_comb begin
 			else begin
 				if(ctr_r == MAX) begin
 					ctr_w = 24'd0;
-					if(record_time_r == timemax) begin
+					if( record_time_r == timemax) begin
 						record_time_w = record_time_r;
 					end
+
 					else begin
 						record_time_w = record_time_r + 6'd1; 
 					end
@@ -221,7 +222,6 @@ always_comb begin
 				else begin
 					ctr_w = 24'd0;
 				end
-			
 			end
 		end       
 
@@ -262,40 +262,43 @@ always_comb begin
 				end
 				
 				else if(ctr_r < MAX) begin
-					 if (Aud_fast) begin
+
+					if (Aud_fast && i_speed >= 4'd2) begin
                         ctr_w   = ctr_r + i_speed;
                         repeat_ctr_w  = 4'd0;
-                end
+                	end
+					
+					else if (Aud_slow_0 && i_speed >= 4'd2) begin
+						if (repeat_ctr_r == i_speed) begin
+							ctr_w   = ctr_r + 24'd1;
+							repeat_ctr_w  = 4'd0;
+						end
 
-                else if (Aud_slow_0 && i_speed >= 4'd2) begin
-                    if (repeat_ctr_r == i_speed) begin
-                        ctr_w   = ctr_r + 24'd1;
-								repeat_ctr_w  = 4'd0;
-                    end
-                    else begin
-                        repeat_ctr_w = repeat_ctr_r + 4'd1;
-                    end
-                end
+						else begin
+							repeat_ctr_w = repeat_ctr_r + 4'd1;
+						end
 
-                else if (Aud_slow_1 && i_speed >= 4'd2) begin
-                    if (repeat_ctr_r == i_speed) begin
-                        ctr_w   = ctr_r + 24'd1;
-								repeat_ctr_w  = 4'd0;
-                    end
-                    else begin
-                        repeat_ctr_w = repeat_ctr_r + 4'd1;
-                    end
-                end
-	
-				    else begin
-                    ctr_w   = ctr_r + 1;
-                end
+					end
+
+					else if (Aud_slow_1 && i_speed >= 4'd2) begin
+						if (repeat_ctr_r == i_speed) begin
+							ctr_w   = ctr_r + 24'd1;
+							repeat_ctr_w  = 4'd0;
+						end
+						else begin
+							repeat_ctr_w = repeat_ctr_r + 4'd1;
+						end
+					end
+						
+					else begin
+						ctr_w   = ctr_r + 1;
+					end
 				end
-				
+
 				else begin
 					ctr_w = 24'd0;
 				end
-			
+
 			end
 		end      
 
